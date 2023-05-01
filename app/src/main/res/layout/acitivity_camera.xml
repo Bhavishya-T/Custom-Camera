@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Camera Activity"
+        android:id="@+id/cameraText"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+    </TextView>
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:trackThickness="4dp"
+        android:max="100"
+        app:indicatorColor="@color/black"
+        app:trackColor="#0000FF"
+        app:trackCornerRadius="2dp"
+        app:indicatorDirectionCircular="clockwise"
+        >
+
+    </com.google.android.material.progressindicator.CircularProgressIndicator>
+
+<!--    <FrameLayout-->
+<!--        android:id="@+id/container">-->
+<!--        <android-->
+<!--            android:id="@+id/previewView" />-->
+<!--    </FrameLayout>-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>

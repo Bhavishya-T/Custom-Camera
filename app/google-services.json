@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "550304396339",
+    "firebase_url": "https://inito-ef645-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "inito-ef645",
+    "storage_bucket": "inito-ef645.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550304396339:android:91bd325650c585a7dd9f46",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "550304396339-9mosbsv1ota5hkisusg3n7tc73p5i612.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvlZBdgkpjjHkNQtGid54-C9GAjd2Ismk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "550304396339-9mosbsv1ota5hkisusg3n7tc73p5i612.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
