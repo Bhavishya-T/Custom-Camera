@@ -49,6 +49,7 @@ public class CameraActivity extends AppCompatActivity {
         broadcast = new IntentFilter();
         broadcast.addAction("positive");
         Intent serviceIntent = new Intent(this, MyService.class);
+        serviceIntent.putExtra("TYPE","camera");
         Log.d("kkkk","service started");
         startService(serviceIntent);
     }
@@ -62,10 +63,10 @@ public class CameraActivity extends AppCompatActivity {
                 Log.d("kkkk","activity resumed and got broadcast response");
                 TextView view = findViewById(R.id.cameraText);
                 view.setText("Got data");
-                Intent stopIntent = new Intent(CameraActivity.this,
-                        MyService.class);
-                stopService(stopIntent);
-                Log.d("kkkk", "service stopped and broadcast end");
+//                Intent stopIntent = new Intent(CameraActivity.this,
+//                        MyService.class);
+//                stopService(stopIntent);
+//                Log.d("kkkk", "service stopped and broadcast end");
                 CircularProgressIndicator progressIndicator = (CircularProgressIndicator) findViewById(R.id.progress);
                 progressIndicator.setProgress(100);
                 new CountDownTimer(10000, 2000) {
@@ -80,6 +81,8 @@ public class CameraActivity extends AppCompatActivity {
                         // DO something when 1 minute is up
                         Log.d("kkkk", "next screen now");
                         progressIndicator.setProgressCompat(100,true);
+                        Intent intent1 = new Intent(CameraActivity.this,CaptureActivity.class);
+                        CameraActivity.this.startActivity(intent1);
                     }
                 }.start();
             }
