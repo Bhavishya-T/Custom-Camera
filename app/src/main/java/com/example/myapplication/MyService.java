@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
@@ -144,8 +145,8 @@ public class MyService extends Service {
             Camera.Parameters camParams = camera.getParameters();
             String supportedIsoValues = camParams.get("iso-values"); //supported values, comma separated String
             camParams.set("iso", "100");
-            camParams.setExposureCompensation(camParams.getMinExposureCompensation());
-            camera.setParameters(camParams);
+//            camParams.setExposureCompensation(camParams.getMinExposureCompensation());
+//            camera.setParameters(camParams);
         } catch (RuntimeException e) {
             Log.d("kkkk","Camera not available: " + 0);
             camera = null;
@@ -156,52 +157,78 @@ public class MyService extends Service {
                 Log.d("kkkk","Could not get camera instance");
             } else {
                 Log.d("kkkk","Got the camera, creating the dummy surface texture");
-                try {
-                    camera.setPreviewTexture(new SurfaceTexture(0));
-                    camera.startPreview();
-                } catch (Exception e) {
-                    Log.d("kkkk","Could not set the surface preview texture");
-                    e.printStackTrace();
-                }
-                camera.takePicture(null, null, new Camera.PictureCallback() {
+//                try {
+//                    camera.setPreviewTexture(new SurfaceTexture(0));
+//                    camera.startPreview();
+//                } catch (Exception e) {
+//                    Log.d("kkkk","Could not set the surface preview texture");
+//                    e.printStackTrace();
+//                }
+                new CountDownTimer(3000,1000){
+                    int step=-1;
 
                     @Override
-                    public void onPictureTaken(byte[] data, Camera camera) {
-
-                        File pictureFileDir= new File(Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_PICTURES), "kkkk");
-
-                        if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
-                            pictureFileDir.mkdirs();
-                        }
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
-                        String date = dateFormat.format(new Date());
-                        String photoFile = "EvServiceClickedPic_" + "_" + date + ".jpg";
-                        String filename = pictureFileDir.getPath() + File.separator + photoFile;
-                        File mainPicture = new File(filename);
-
+                    public void onTick(long millisUntilFinished) {
                         try {
-                            FileOutputStream fos = new FileOutputStream(mainPicture);
-                            fos.write(data);
-                            fos.close();
-                            Log.d("kkkk","image with min ev saved at "+filename);
-                        } catch (Exception error) {
-                            Log.d("kkkk","Image could not be saved");
+                            camera.setPreviewTexture(new SurfaceTexture(0));
+                            camera.startPreview();
+                        } catch (Exception e) {
+                            Log.d("kkkk","Could not set the surface preview texture");
+                            e.printStackTrace();
                         }
-//                        camera.release();
-                        new Timer().schedule(new TimerTask() {
+                        Camera.Parameters camParams = camera.getParameters();
+                        camParams.setExposureCompensation(step++);
+                        camera.setParameters(camParams);
+                        camera.takePicture(null, null, new Camera.PictureCallback() {
+
                             @Override
-                            public void run() {
-                                // this code will be executed after 2 seconds
+                            public void onPictureTaken(byte[] data, Camera camera) {
+
+                                File pictureFileDir= new File(Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_PICTURES), "kkkk");
+
+                                if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
+                                    pictureFileDir.mkdirs();
+                                }
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyymmddhhmmss");
+                                String date = dateFormat.format(new Date());
+                                String photoFile = "EvServiceClickedPic_" + "_" + date + ".jpg";
+                                String filename = pictureFileDir.getPath() + File.separator + photoFile;
+                                File mainPicture = new File(filename);
+
+                                try {
+                                    FileOutputStream fos = new FileOutputStream(mainPicture);
+                                    fos.write(data);
+                                    fos.close();
+                                    Log.d("kkkk","image with min ev saved at "+filename);
+                                } catch (Exception error) {
+                                    Log.d("kkkk","Image could not be saved");
+                                }
+//                        camera.release();
+                                new Timer().schedule(new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        // this code will be executed after 2 seconds
+                                    }
+                                }, 2000);
+                                Log.d("kkkk","Broadcasting to activity started");
+                                Intent broadcastIntent = new Intent();
+                                broadcastIntent.setAction("evs");
+                                broadcastIntent.putExtra("Data", "Broadcast Data"+camParams.getExposureCompensation());
+                                sendBroadcast(broadcastIntent);
                             }
-                        }, 2000);
-                        Log.d("kkkk","Broadcasting to activity started");
+                        });
+                    }
+
+                    @Override
+                    public void onFinish() {
                         Intent broadcastIntent = new Intent();
                         broadcastIntent.setAction("evs");
-                        broadcastIntent.putExtra("Data", "Broadcast Data");
+                        broadcastIntent.putExtra("Finish", "Task is finished, API call is happening");
                         sendBroadcast(broadcastIntent);
+                        stopSelf();
                     }
-                });
+                }.start();
             }
         } catch (Exception e) {
             camera.release();

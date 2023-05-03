@@ -40,6 +40,7 @@ public class CameraActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkCameraPermissions(CameraActivity.this);
+        checkFilePermission(CameraActivity.this);
         setContentView(R.layout.acitivity_camera);
     }
 
@@ -52,6 +53,18 @@ public class CameraActivity extends AppCompatActivity {
         serviceIntent.putExtra("TYPE","camera");
         Log.d("kkkk","service started");
         startService(serviceIntent);
+    }
+
+    public void checkFilePermission(Context context){
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED)
+        {
+            // Permission is not granted
+            Log.d("checkCameraPermissions", "No Camera Permissions");
+            ActivityCompat.requestPermissions((Activity) context,
+                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    100);
+        }
     }
 
     @Override

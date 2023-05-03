@@ -1,18 +1,21 @@
 package com.example.myapplication;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.util.Log;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.progressindicator.CircularProgressIndicator;
+import okhttp3.Headers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CaptureActivity extends AppCompatActivity {
 
@@ -42,12 +45,20 @@ public class CaptureActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d("kkkk","activity resumed and got broadcast response for captures");
+                String message = intent.getStringExtra("Data");
                 TextView view = findViewById(R.id.captureText);
-                view.setText("Got capture");
-                Intent stopIntent = new Intent(CaptureActivity.this,
-                        MyService.class);
-                stopService(stopIntent);
-                Log.d("kkkk", "service stopped and broadcast end");
+                String doneMessage = intent.getStringExtra("Finish");
+                if(doneMessage!=null){
+                    message=doneMessage;
+                }
+                view.setText(message);
+                if(doneMessage!=null){
+                    doCall();
+                }
+//                Intent stopIntent = new Intent(CaptureActivity.this,
+//                        MyService.class);
+//                stopService(stopIntent);
+//                Log.d("kkkk", "service stopped and broadcast end");
 //                CircularProgressIndicator progressIndicator = (CircularProgressIndicator) findViewById(R.id.progress);
 //                progressIndicator.setProgress(100);
 //                new CountDownTimer(10000, 2000) {
@@ -68,5 +79,55 @@ public class CaptureActivity extends AppCompatActivity {
 //                }.start();
             }
         }, broadcast);
+    }
+
+    private void doCall() {
+        Log.d("kkkk","Inside doCall");
+        APIInterface apiInterface = APIClient.getClient().create(APIInterface.class);
+        Call<SignInResponse> call = apiInterface.signIn(new SignInRequest("amit_4@test.com","12345678"));
+        call.enqueue(new Callback<SignInResponse>() {
+            @Override
+            public void onResponse(Call<SignInResponse> call, Response<SignInResponse> response) {
+                Headers headers = response.headers();
+                Log.d("kkkk",headers.get("access-token")+" "+headers.get("uid")+" "
+                +headers.get("client"));
+                sendImage(headers);
+            }
+
+            @Override
+            public void onFailure(Call<SignInResponse> call, Throwable t) {
+                Log.d("kkkk","Error "+t.getMessage());
+            }
+        });
+    }
+
+    private void sendImage(Headers headers) {
+        Log.d("kkkk","Inside sendImage");
+        APIInterface apiInterface = APIClient.getClient().create(APIInterface.class);
+        Call<TestResponse> call = apiInterface.sendImage(headers.get("access-token"),headers.get("uid"),
+                headers.get("client"), new TestRequest());
+        call.enqueue(new Callback<TestResponse>() {
+            @Override
+            public void onResponse(Call<TestResponse> call, Response<TestResponse> response) {
+//                Log.d("kkkk",headers.get("access-token")+" "+headers.get("uid")+" "
+//                        +headers.get("client"));
+//                sendImage();
+            }
+
+            @Override
+            public void onFailure(Call<TestResponse> call, Throwable t) {
+//                Log.d("kkkk","Error "+t.getMessage());
+            }
+        });
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
