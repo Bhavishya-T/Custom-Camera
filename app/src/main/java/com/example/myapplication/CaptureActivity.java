@@ -19,6 +19,8 @@ import retrofit2.Response;
 
 public class CaptureActivity extends AppCompatActivity {
 
+    public static final String TAG = "MyApplication";
+
     IntentFilter broadcast;
 
     @Override
@@ -30,12 +32,20 @@ public class CaptureActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        broadcast = new IntentFilter();
-        broadcast.addAction("evs");
+        createBroadcast();
+        createService();
+    }
+
+    private void createService() {
         Intent serviceIntent = new Intent(this, MyService.class);
         serviceIntent.putExtra("TYPE","capture");
-        Log.d("kkkk","service started for captures");
+        Log.d(TAG,"service started for captures");
         startService(serviceIntent);
+    }
+
+    private void createBroadcast() {
+        broadcast = new IntentFilter();
+        broadcast.addAction("evs");
     }
 
     @Override
@@ -44,7 +54,7 @@ public class CaptureActivity extends AppCompatActivity {
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d("kkkk","activity resumed and got broadcast response for captures");
+                Log.d(TAG,"activity resumed and got broadcast response for captures");
                 String message = intent.getStringExtra("Data");
                 TextView view = findViewById(R.id.captureText);
                 String doneMessage = intent.getStringExtra("Finish");
@@ -55,48 +65,28 @@ public class CaptureActivity extends AppCompatActivity {
                 if(doneMessage!=null){
                     doCall();
                 }
-//                Intent stopIntent = new Intent(CaptureActivity.this,
-//                        MyService.class);
-//                stopService(stopIntent);
-//                Log.d("kkkk", "service stopped and broadcast end");
-//                CircularProgressIndicator progressIndicator = (CircularProgressIndicator) findViewById(R.id.progress);
-//                progressIndicator.setProgress(100);
-//                new CountDownTimer(10000, 2000) {
-//                    public void onTick(long millisUntilFinished) {
-//                        //forward progress
-//                        long finishedSeconds = 10000 - millisUntilFinished;
-//                        int total = (int) (((float)finishedSeconds / (float)10000) * 100.0);
-//                        progressIndicator.setProgressCompat(total,true);
-//
-//                    }
-//                    public void onFinish() {
-//                        // DO something when 1 minute is up
-//                        Log.d("kkkk", "next screen now");
-//                        progressIndicator.setProgressCompat(100,true);
-//                        Intent intent1 = new Intent(CameraActivity.this,CaptureActivity.class);
-//                        CameraActivity.this.startActivity(intent1);
-//                    }
-//                }.start();
             }
         }, broadcast);
     }
 
     private void doCall() {
-        Log.d("kkkk","Inside doCall");
+        Log.d(TAG,"Inside doCall");
         APIInterface apiInterface = APIClient.getClient().create(APIInterface.class);
         Call<SignInResponse> call = apiInterface.signIn(new SignInRequest("amit_4@test.com","12345678"));
         call.enqueue(new Callback<SignInResponse>() {
             @Override
             public void onResponse(Call<SignInResponse> call, Response<SignInResponse> response) {
                 Headers headers = response.headers();
-                Log.d("kkkk",headers.get("access-token")+" "+headers.get("uid")+" "
+                TextView textView = findViewById(R.id.captureText);
+                textView.setText("User is "+response.body().email);
+                Log.d(TAG,headers.get("access-token")+" "+headers.get("uid")+" "
                 +headers.get("client"));
-                sendImage(headers);
+//                sendImage(headers);
             }
 
             @Override
             public void onFailure(Call<SignInResponse> call, Throwable t) {
-                Log.d("kkkk","Error "+t.getMessage());
+                Log.d(TAG,"Error "+t.getMessage());
             }
         });
     }
@@ -109,9 +99,7 @@ public class CaptureActivity extends AppCompatActivity {
         call.enqueue(new Callback<TestResponse>() {
             @Override
             public void onResponse(Call<TestResponse> call, Response<TestResponse> response) {
-//                Log.d("kkkk",headers.get("access-token")+" "+headers.get("uid")+" "
-//                        +headers.get("client"));
-//                sendImage();
+
             }
 
             @Override
@@ -119,15 +107,5 @@ public class CaptureActivity extends AppCompatActivity {
 //                Log.d("kkkk","Error "+t.getMessage());
             }
         });
-    }
-
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
     }
 }

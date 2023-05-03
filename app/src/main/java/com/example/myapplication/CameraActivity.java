@@ -33,38 +33,42 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class CameraActivity extends AppCompatActivity {
+    public static final String TAG = "MyApplication";
 
     IntentFilter broadcast;
+
+    int PERMISSION_ALL = 1;
+    String[] PERMISSIONS = {
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.CAMERA
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        checkCameraPermissions(CameraActivity.this);
-        checkFilePermission(CameraActivity.this);
+        if (!hasPermissions(this, PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+        }
         setContentView(R.layout.acitivity_camera);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        broadcast = new IntentFilter();
-        broadcast.addAction("positive");
+        createBroadcast();
+        createService();
+    }
+
+    private void createService() {
         Intent serviceIntent = new Intent(this, MyService.class);
         serviceIntent.putExtra("TYPE","camera");
-        Log.d("kkkk","service started");
+        Log.d(TAG,"service started");
         startService(serviceIntent);
     }
 
-    public void checkFilePermission(Context context){
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED)
-        {
-            // Permission is not granted
-            Log.d("checkCameraPermissions", "No Camera Permissions");
-            ActivityCompat.requestPermissions((Activity) context,
-                    new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
-                    100);
-        }
+    private void createBroadcast() {
+        broadcast = new IntentFilter();
+        broadcast.addAction("positive");
     }
 
     @Override
@@ -73,44 +77,38 @@ public class CameraActivity extends AppCompatActivity {
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d("kkkk","activity resumed and got broadcast response");
+                Log.d(TAG,"activity resumed and got broadcast response");
                 TextView view = findViewById(R.id.cameraText);
-                view.setText("Got data");
-//                Intent stopIntent = new Intent(CameraActivity.this,
-//                        MyService.class);
-//                stopService(stopIntent);
-//                Log.d("kkkk", "service stopped and broadcast end");
+                view.setText("‘Capturing Single Image");
                 CircularProgressIndicator progressIndicator = (CircularProgressIndicator) findViewById(R.id.progress);
+                progressIndicator.setVisibility(View.VISIBLE);
                 progressIndicator.setProgress(100);
                 new CountDownTimer(10000, 2000) {
                     public void onTick(long millisUntilFinished) {
-                        //forward progress
                         long finishedSeconds = 10000 - millisUntilFinished;
                         int total = (int) (((float)finishedSeconds / (float)10000) * 100.0);
                         progressIndicator.setProgressCompat(total,true);
 
                     }
                     public void onFinish() {
-                        // DO something when 1 minute is up
-                        Log.d("kkkk", "next screen now");
+                        Log.d(TAG, "next screen now");
                         progressIndicator.setProgressCompat(100,true);
-                        Intent intent1 = new Intent(CameraActivity.this,CaptureActivity.class);
-                        CameraActivity.this.startActivity(intent1);
+                        Intent newIntent = new Intent(CameraActivity.this,CaptureActivity.class);
+                        CameraActivity.this.startActivity(newIntent);
                     }
                 }.start();
             }
         }, broadcast);
     }
 
-    public void checkCameraPermissions(Context context){
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED)
-        {
-            // Permission is not granted
-            Log.d("checkCameraPermissions", "No Camera Permissions");
-            ActivityCompat.requestPermissions((Activity) context,
-                    new String[] { Manifest.permission.CAMERA },
-                    100);
+    public boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
         }
+        return true;
     }
 }

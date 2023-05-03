@@ -16,6 +16,7 @@
     </TextView>
 
     <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:visibility="gone"
         android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -25,8 +26,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:trackThickness="4dp"
         android:max="100"
-        app:indicatorColor="@color/black"
-        app:trackColor="#0000FF"
+        app:indicatorColor="#0000FF"
+        app:trackColor="@color/white"
         app:trackCornerRadius="2dp"
         app:indicatorDirectionCircular="clockwise"
         >

@@ -165,7 +165,7 @@ public class MyService extends Service {
 //                    e.printStackTrace();
 //                }
                 new CountDownTimer(3000,1000){
-                    int step=-1;
+                    int step=-5;
 
                     @Override
                     public void onTick(long millisUntilFinished) {
@@ -177,7 +177,8 @@ public class MyService extends Service {
                             e.printStackTrace();
                         }
                         Camera.Parameters camParams = camera.getParameters();
-                        camParams.setExposureCompensation(step++);
+                        camParams.setExposureCompensation(step);
+                        step+=5;
                         camera.setParameters(camParams);
                         camera.takePicture(null, null, new Camera.PictureCallback() {
 
@@ -214,7 +215,7 @@ public class MyService extends Service {
                                 Log.d("kkkk","Broadcasting to activity started");
                                 Intent broadcastIntent = new Intent();
                                 broadcastIntent.setAction("evs");
-                                broadcastIntent.putExtra("Data", "Broadcast Data"+camParams.getExposureCompensation());
+                                broadcastIntent.putExtra("Data", "Broadcast Data "+camParams.getExposureCompensation());
                                 sendBroadcast(broadcastIntent);
                             }
                         });
