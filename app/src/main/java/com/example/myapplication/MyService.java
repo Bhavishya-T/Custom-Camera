@@ -128,8 +128,8 @@ public class MyService extends Service {
                 Log.d(TAG,"Could not get camera");
             } else {
                 Log.d(TAG,"Got the camera");
-                new CountDownTimer(10000,2000){
-                    int step=-2;
+                new CountDownTimer(11000,1000){
+                    int step=-5;
                     @Override
                     public void onTick(long millisUntilFinished) {
                         try {

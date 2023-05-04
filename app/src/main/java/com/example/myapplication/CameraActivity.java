@@ -71,8 +71,8 @@ public class CameraActivity extends AppCompatActivity {
                 progressIndicator.setProgress(100);
                 new CountDownTimer(300000, 5000) {
                     public void onTick(long millisUntilFinished) {
-                        long finishedSeconds = 10000 - millisUntilFinished;
-                        int total = (int) (((float)finishedSeconds / (float)10000) * 100.0);
+                        long finishedSeconds = 300000 - millisUntilFinished;
+                        int total = (int) (((float)finishedSeconds / (float)300000) * 100.0);
                         progressIndicator.setProgressCompat(total,true);
                     }
                     public void onFinish() {
