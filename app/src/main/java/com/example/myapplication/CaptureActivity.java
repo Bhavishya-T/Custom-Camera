@@ -4,9 +4,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
+import java.io.*;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,9 +18,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-import org.w3c.dom.Text;
-
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,25 +106,40 @@ public class CaptureActivity extends AppCompatActivity {
         });
     }
 
-    public void sendImage(Headers headers) {
+    public void sendImage(Headers headers){
         File pictureFileDir= new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "MyApplication");
         String filename = pictureFileDir.getPath() + File.separator + "EvPicture0.jpg";
         File file = new File(filename);
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        Bitmap bm = BitmapFactory.decodeStream(fis);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.JPEG, 100 , baos);
+        byte[] b = baos.toByteArray();
         Log.d(TAG,"Image being sent is "+filename);
+        RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"), b);
         RequestBody requestFile =
                 RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        String date = new Date().toString();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        String date = dateFormat.format(new Date());
         RequestBody done_date =
                 RequestBody.create(MediaType.parse("text/plain"), date);
+        RequestBody batch_qr_code =
+                RequestBody.create(MediaType.parse("text/plain"), "AAO");
         RequestBody reason =
                 RequestBody.create(MediaType.parse("text/plain"), "NA");
         RequestBody failure =
-                RequestBody.create(MediaType.parse("application/json"), String.valueOf(false));
+                RequestBody.create(MediaType.parse("text/plain"), String.valueOf(false));
         Map<String, RequestBody> map = new HashMap<>();
         map.put("done_date",done_date);
-        map.put("images_attributes", requestFile);
-//        map.put("batch_qr_code","AAO");
+        map.put("images_attributes", body);
+        map.put("batch_qr_code",batch_qr_code);
         map.put("reason",reason);
         map.put("failure",failure);
         Log.d(TAG,"Inside sendImage");
@@ -129,7 +150,12 @@ public class CaptureActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Object> call, Response<Object> response) {
                 TextInputEditText view = findViewById(R.id.testStatus);
-                view.setText("Test Done");
+                if(response.code()!=200){
+                    view.setText("Test Failed");
+                }
+                else{
+                    view.setText("Test Done");
+                }
                 Log.d(TAG,"Response "+response.body());
             }
 

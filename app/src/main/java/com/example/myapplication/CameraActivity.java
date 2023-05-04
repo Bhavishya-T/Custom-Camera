@@ -69,12 +69,11 @@ public class CameraActivity extends AppCompatActivity {
                 CircularProgressIndicator progressIndicator = (CircularProgressIndicator) findViewById(R.id.progress);
                 progressIndicator.setVisibility(View.VISIBLE);
                 progressIndicator.setProgress(100);
-                new CountDownTimer(10000, 2000) {
+                new CountDownTimer(300000, 5000) {
                     public void onTick(long millisUntilFinished) {
                         long finishedSeconds = 10000 - millisUntilFinished;
                         int total = (int) (((float)finishedSeconds / (float)10000) * 100.0);
                         progressIndicator.setProgressCompat(total,true);
-
                     }
                     public void onFinish() {
                         Log.d(TAG, "next screen now");
