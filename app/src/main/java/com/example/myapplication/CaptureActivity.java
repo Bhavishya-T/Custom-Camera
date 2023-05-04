@@ -1,18 +1,29 @@
 package com.example.myapplication;
 
-import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
-import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
+import org.w3c.dom.Text;
+
+import java.io.File;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,26 +35,26 @@ public class CaptureActivity extends AppCompatActivity {
     IntentFilter broadcast;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_capture);
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
         createBroadcast();
         createService();
     }
 
-    private void createService() {
+    public void createService() {
         Intent serviceIntent = new Intent(this, MyService.class);
         serviceIntent.putExtra("TYPE","capture");
         Log.d(TAG,"service started for captures");
         startService(serviceIntent);
     }
 
-    private void createBroadcast() {
+    public void createBroadcast() {
         broadcast = new IntentFilter();
         broadcast.addAction("evs");
     }
@@ -56,32 +67,30 @@ public class CaptureActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 Log.d(TAG,"activity resumed and got broadcast response for captures");
                 String message = intent.getStringExtra("Data");
-                TextView view = findViewById(R.id.captureText);
+                TextInputEditText view = findViewById(R.id.testStatus);
                 String doneMessage = intent.getStringExtra("Finish");
                 if(doneMessage!=null){
                     message=doneMessage;
                 }
                 view.setText(message);
                 if(doneMessage!=null){
-                    doCall();
+                    doSignIn();
                 }
             }
         }, broadcast);
     }
 
-    private void doCall() {
-        Log.d(TAG,"Inside doCall");
+    public void doSignIn() {
+        Log.d(TAG,"Inside doSignIn");
         APIInterface apiInterface = APIClient.getClient().create(APIInterface.class);
         Call<SignInResponse> call = apiInterface.signIn(new SignInRequest("amit_4@test.com","12345678"));
         call.enqueue(new Callback<SignInResponse>() {
             @Override
             public void onResponse(Call<SignInResponse> call, Response<SignInResponse> response) {
                 Headers headers = response.headers();
-                TextView textView = findViewById(R.id.captureText);
-                textView.setText("User is "+response.body().email);
                 Log.d(TAG,headers.get("access-token")+" "+headers.get("uid")+" "
                 +headers.get("client"));
-//                sendImage(headers);
+                sendImage(headers);
             }
 
             @Override
@@ -91,20 +100,44 @@ public class CaptureActivity extends AppCompatActivity {
         });
     }
 
-    private void sendImage(Headers headers) {
-        Log.d("kkkk","Inside sendImage");
+    public void sendImage(Headers headers) {
+        File pictureFileDir= new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), "MyApplication");
+        String filename = pictureFileDir.getPath() + File.separator + "EvPicture0.jpg";
+        File file = new File(filename);
+        Log.d(TAG,"Image being sent is "+filename);
+        RequestBody requestFile =
+                RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        String date = new Date().toString();
+        RequestBody done_date =
+                RequestBody.create(MediaType.parse("text/plain"), date);
+        RequestBody reason =
+                RequestBody.create(MediaType.parse("text/plain"), "NA");
+        RequestBody failure =
+                RequestBody.create(MediaType.parse("application/json"), String.valueOf(false));
+        Map<String, RequestBody> map = new HashMap<>();
+        map.put("done_date",done_date);
+        map.put("images_attributes", requestFile);
+//        map.put("batch_qr_code","AAO");
+        map.put("reason",reason);
+        map.put("failure",failure);
+        Log.d(TAG,"Inside sendImage");
         APIInterface apiInterface = APIClient.getClient().create(APIInterface.class);
-        Call<TestResponse> call = apiInterface.sendImage(headers.get("access-token"),headers.get("uid"),
-                headers.get("client"), new TestRequest());
-        call.enqueue(new Callback<TestResponse>() {
+        Call<Object> call = apiInterface.sendImage(headers.get("access-token"),headers.get("uid"),
+                headers.get("client"), map);
+        call.enqueue(new Callback<Object>() {
             @Override
-            public void onResponse(Call<TestResponse> call, Response<TestResponse> response) {
-
+            public void onResponse(Call<Object> call, Response<Object> response) {
+                TextInputEditText view = findViewById(R.id.testStatus);
+                view.setText("Test Done");
+                Log.d(TAG,"Response "+response.body());
             }
 
             @Override
-            public void onFailure(Call<TestResponse> call, Throwable t) {
-//                Log.d("kkkk","Error "+t.getMessage());
+            public void onFailure(Call<Object> call, Throwable t) {
+                TextInputEditText view = findViewById(R.id.testStatus);
+                view.setText("Test Failed");
+                Log.d(TAG,"Error "+t.getMessage());
             }
         });
     }
