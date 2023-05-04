@@ -1,36 +1,22 @@
 package com.example.myapplication;
 
-import android.Manifest;
-import android.animation.ObjectAnimator;
-import android.animation.TimeAnimator;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Camera;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.ResultReceiver;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.material.progressindicator.CircularProgressIndicator;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 public class CameraActivity extends AppCompatActivity {
     public static final String TAG = "MyApplication";
@@ -44,7 +30,7 @@ public class CameraActivity extends AppCompatActivity {
     };
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (!hasPermissions(this, PERMISSIONS)) {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
@@ -53,20 +39,20 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
+    public void onStart() {
         super.onStart();
         createBroadcast();
         createService();
     }
 
-    private void createService() {
+    public void createService() {
         Intent serviceIntent = new Intent(this, MyService.class);
         serviceIntent.putExtra("TYPE","camera");
         Log.d(TAG,"service started");
         startService(serviceIntent);
     }
 
-    private void createBroadcast() {
+    public void createBroadcast() {
         broadcast = new IntentFilter();
         broadcast.addAction("positive");
     }
@@ -78,8 +64,8 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Log.d(TAG,"activity resumed and got broadcast response");
-                TextView view = findViewById(R.id.cameraText);
-                view.setText("‘Capturing Single Image");
+                TextInputEditText view = findViewById(R.id.cameraStatus);
+                view.setText("Capturing Single Image");
                 CircularProgressIndicator progressIndicator = (CircularProgressIndicator) findViewById(R.id.progress);
                 progressIndicator.setVisibility(View.VISIBLE);
                 progressIndicator.setProgress(100);
